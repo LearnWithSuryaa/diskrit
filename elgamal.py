@@ -1,15 +1,16 @@
 import random
+from tabulate import tabulate  # Import tabulate untuk tabel ASCII
 
 # Parameter kunci publik
 p = 2579
 alpha = 2
 beta = 949
 
-# Fungsi untuk menghitung perpangkatan modular hanya untuk kelipatan 2
+# Fungsi untuk menghitung perpangkatan modular dengan format tampilan yang sesuai
 def mod_exp_verbose(base, exp, mod):
     steps = []
-    intermediate_values = {1: base % mod}  # Simpan hasil pangkat 1
-    
+    intermediate_values = {1: base % mod}
+
     # Langkah awal (pangkat 1)
     steps.append(f"{base}^1 mod {mod} = {intermediate_values[1]}")
 
@@ -22,16 +23,16 @@ def mod_exp_verbose(base, exp, mod):
         steps.append(f"= [{prev}] . [{prev}] mod {mod}")
         steps.append(f"= {prev * prev} mod {mod}")
         steps.append(f"= {intermediate_values[power]}")
-        power *= 2  # Lompat ke pangkat berikutnya
+        power *= 2
 
     # Jika exp tidak ditemukan langsung di dictionary, cari kombinasi pangkat
     if exp not in intermediate_values:
         bin_exp = bin(exp)[2:]  # Konversi ke biner
-        exp_parts = [2**i for i in range(len(bin_exp)) if bin_exp[-(i+1)] == '1']
-        
+        exp_parts = sorted([2**i for i in range(len(bin_exp)) if bin_exp[-(i+1)] == '1'], reverse=True)
+
         result = 1
         steps.append(f"\nMenghitung {base}^{exp} mod {mod} dari kombinasi:")
-        
+
         for i, part in enumerate(exp_parts):
             if i == 0:
                 result = intermediate_values[part]
@@ -43,7 +44,7 @@ def mod_exp_verbose(base, exp, mod):
         
         intermediate_values[exp] = result
 
-    steps.append(f"Ditemukan nilai = {intermediate_values[exp]}")
+    steps.append(f"\nDitemukan nilai = {intermediate_values[exp]}")
     return intermediate_values[exp], steps
 
 # Fungsi enkripsi dengan algoritma El Gamal
@@ -51,9 +52,14 @@ def elgamal_encrypt(message, p, alpha, beta):
     encrypted_pairs = []
     output_text = ""
 
+    # Membuat tabel ASCII
+    table_data = [["i", "Karakter", "Plainteks mi", "ASCII"]]
+
     for i, char in enumerate(message):
         m = ord(char)  # Konversi karakter ke ASCII
         k = random.choice([x for x in range(10, 100, 2)])  # Pilih nilai k (2 digit & kelipatan 2)
+
+        table_data.append([i + 1, char, f"m_{i+1}", m])
 
         output_text += f"\nm{i+1} = {m}\n"
         output_text += f"k{i+1} = {k}\n"
@@ -82,7 +88,10 @@ def elgamal_encrypt(message, p, alpha, beta):
 
         # Format output
         output_text += f"Hasil enkripsi m{i+1} = {m} dengan k{i+1} = {k} adalah = ({gamma}, {delta})\n"
-    
+
+    # Menambahkan tabel ASCII ke dalam output
+    output_text = "Tabel ASCII:\n" + tabulate(table_data, headers="firstrow", tablefmt="grid") + "\n\n" + output_text
+
     return encrypted_pairs, output_text
 
 # Fungsi untuk menyimpan hasil enkripsi ke dalam file
@@ -94,8 +103,8 @@ def save_to_file(filename, output_text):
 if __name__ == "__main__":
     message = input("Masukkan pesan yang ingin dienkripsi: ")
     encrypted_data, output_text = elgamal_encrypt(message, p, alpha, beta)
-    
+
+    # Simpan hasil ke file
     output_filename = "encrypted_message.txt"
     save_to_file(output_filename, output_text)
-
-    print(f"Hasil enkripsi telah disimpan dalam file: {output_filename}")
+    print(f"\nHasil enkripsi berhasil disimpan ke dalam file {output_filename}")
