@@ -55,9 +55,15 @@ def elgamal_encrypt(message, p, alpha, beta):
     # Membuat tabel ASCII
     table_data = [["i", "Karakter", "Plainteks mi", "ASCII"]]
 
+    # Membuat daftar angka k yang unik
+    available_k_values = [x for x in range(10, 100, 2)]  
+
     for i, char in enumerate(message):
         m = ord(char)  # Konversi karakter ke ASCII
-        k = random.choice([x for x in range(10, 100, 2)])  # Pilih nilai k (2 digit & kelipatan 2)
+
+        # Pilih nilai k yang belum digunakan
+        k = random.choice(available_k_values)
+        available_k_values.remove(k)  # Hapus k agar tidak dipilih lagi
 
         table_data.append([i + 1, char, f"m_{i+1}", m])
 
